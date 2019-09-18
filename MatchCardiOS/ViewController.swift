@@ -16,6 +16,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     //keep track of cards flipped over
     var firstFlippedCardIndex:IndexPath?
     
+    //keep track of the timer
+    var timer:Timer?
+    var milliseconds:Float = 10 * 1000// 10s
+    
+    @IBOutlet weak var timerLabel: UILabel!
     
     @IBOutlet weak var collectionView: UICollectionView!
     
@@ -28,12 +33,32 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         //assign the view controller
         collectionView.delegate = self
         collectionView.dataSource = self
+        
+        //initiate the timer object, fires every milisecond
+        timer = Timer.scheduledTimer(timeInterval: 0.001, target: self, selector: #selector(timerElapsed), userInfo: nil, repeats: true)
+        //this because timer stops when scrolling
+        RunLoop.main.add(timer!, forMode: .common)
     }
     
     // implementing required UICollectionView protocol methods
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return cardArray.count
+    }
+    //each time it's called, remove 1 ms from the global var milliseconds
+    @objc func timerElapsed(){
+        milliseconds -= 1
+        //convert to s
+        let second = String(format: "%.2f", milliseconds/1000)
+        timerLabel.text = "Time Remaining: \(second)"
+        
+        //stop the counter when millis are 0
+        //check if any of the cards matched
+        if milliseconds <= 0 {
+            timer?.invalidate()
+            timerLabel.textColor = UIColor.red
+            checkIfGameEnded()
+        }
     }
     
     //Cast because dequeue doesn't know about CardCollectionViewCell calss
@@ -49,6 +74,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
 
     //called when user taps the cell on the grid
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        
+        //Check if the timer expired
+        if milliseconds <= 0 {
+            return
+        }
         
         //get the ccvc from the collection using the index path and cast it so that we can use the methods the class has (flip)
         let cell =  collectionView.cellForItem(at: indexPath) as! CardCollectionViewCell
@@ -94,9 +124,12 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             cardOne.isMatched = true
             cardTwo.isMatched = true
             
-            //remove the cards taht matched
+            //remove the cards that matched
             cardOneCell?.remove()
             cardTwoCell?.remove()
+            
+            //let's also check if there's any cards left unmatech
+            checkIfGameEnded()
         }
         //else cards didn't match, revert them back to hidden
         else {
@@ -117,5 +150,43 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         
         //reset the index to nil
         firstFlippedCardIndex = nil
+    }
+    
+    
+    func checkIfGameEnded (){
+        var isWon = true
+        for card in cardArray {
+            if card.isMatched == false {
+                isWon = false
+                break
+            }
+        }
+        var title = ""
+        var message = ""
+        
+        if isWon {
+            if milliseconds > 0 {
+                timer?.invalidate()
+            }
+            title = "Congratulations"
+            message = "You've won"
+            
+        } else {
+            if milliseconds > 0{
+                return
+            }
+            title = "Gme over"
+            message = "You've lost"
+            
+        }
+       showAlert(title, message)
+    }
+     
+    func showAlert(_ title:String, _ message:String){
+        //show an alert to the user
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let alertAction = UIAlertAction(title: "Ok", style: .default, handler: nil)
+        alert.addAction(alertAction)
+        present(alert, animated:true, completion:nil)
     }
 }
