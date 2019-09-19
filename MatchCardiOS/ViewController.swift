@@ -4,8 +4,7 @@
 //
 //  Created by ben on 15/09/2019.
 //  Copyright © 2019 ben. All rights reserved.
-//    
-
+//
 import UIKit
 
 class ViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
@@ -38,6 +37,10 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         timer = Timer.scheduledTimer(timeInterval: 0.001, target: self, selector: #selector(timerElapsed), userInfo: nil, repeats: true)
         //this because timer stops when scrolling
         RunLoop.main.add(timer!, forMode: .common)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        SoundManager.playSound(.shuffle)
     }
     
     // implementing required UICollectionView protocol methods
@@ -91,6 +94,9 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             
             cell.flip()
             
+            //Sound
+            SoundManager.playSound(.flip)
+            
             //the card status is flipped
             card.isFlipped = true
             
@@ -124,6 +130,9 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             cardOne.isMatched = true
             cardTwo.isMatched = true
             
+            //play match sound
+            SoundManager.playSound(.match)
+            
             //remove the cards that matched
             cardOneCell?.remove()
             cardTwoCell?.remove()
@@ -136,6 +145,9 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             //set the status
             cardOne.isFlipped = false
             cardTwo.isFlipped = false
+            
+            //play no match sound
+            SoundManager.playSound(.nomatch)
             
             //flip back the cards
             cardOneCell?.flipBack()
