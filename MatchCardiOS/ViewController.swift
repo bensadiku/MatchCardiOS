@@ -17,7 +17,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
     //keep track of the timer
     var timer:Timer?
-    var milliseconds:Float = 10 * 1000// 10s
+    var milliseconds:Float = 30 * 1000// 10s
     
     @IBOutlet weak var timerLabel: UILabel!
     
